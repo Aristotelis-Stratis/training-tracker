@@ -1,38 +1,60 @@
 <div class="page">
   <div class="card">
 
-    <!-- Exercise header -->
-    <div class="exercise-header">
-      <div class="exercise-name">{{ exercise.name }}</div>
-      <button class="icon-btn" title="Optionen">⋮</button>
+    <!-- Day Switch -->
+    <div class="day-switch">
+      <button class="tab" [class.active]="currentDayKey==='PULL'" (click)="loadDay('PULL')">PULL</button>
+      <button class="tab" [class.active]="currentDayKey==='PUSH'" (click)="loadDay('PUSH')">PUSH</button>
+      <button class="tab" [class.active]="currentDayKey==='LEGS'" (click)="loadDay('LEGS')">LEGS</button>
     </div>
 
-    <!-- Table header -->
-    <div class="grid header">
-      <div>SET</div>
-      <div>PREV</div>
-      <div>KG</div>
-      <div>Wdh</div>
-      <div></div>
+    <h2 class="day-title">{{ day.title }}</h2>
+
+    <!-- Exercises -->
+    <div class="exercise-card" *ngFor="let ex of day.exercises; let exIndex = index">
+      <div class="exercise-header" (click)="toggleExercise(exIndex)" role="button" [attr.aria-expanded]="!ex.collapsed"
+        tabindex="0" (keydown.enter)="toggleExercise(exIndex)">
+        <div class="exercise-name">{{ ex.name }}</div>
+
+        <button class="collapse-btn" type="button" (click)="$event.stopPropagation(); toggleExercise(exIndex)"
+          [attr.aria-expanded]="!ex.collapsed"
+          [attr.aria-label]="ex.collapsed ? 'Übung aufklappen' : 'Übung einklappen'">
+          <span class="chev" [class.down]="!ex.collapsed">›</span>
+        </button>
+      </div>
+
+      <div *ngIf="!ex.collapsed">
+        <div class="grid header">
+          <div>SET</div>
+          <div>PREV</div>
+          <div>KG</div>
+          <div>WDH</div>
+        </div>
+
+        <div class="grid row" *ngFor="let s of ex.sets; let setIndex = index" [class.done]="s.done">
+          <div class="setnum">{{ s.set }}</div>
+
+          <input #kgInput class="cell-input" type="text" inputmode="decimal" autocomplete="off" autocapitalize="off"
+            spellcheck="false" [(ngModel)]="s.kg" placeholder="0" (blur)="normalizeKg(exIndex, setIndex)"
+            (keydown.enter)="onKgEnter(exIndex, setIndex, $event)" />
+
+          <input #repsInput class="cell-input" type="text" inputmode="numeric" autocomplete="off" [(ngModel)]="s.reps"
+            placeholder="0" (blur)="normalizeReps(exIndex, setIndex)"
+            (keydown.enter)="onRepsEnter(exIndex, setIndex, $event)" />
+
+          <div class="actions">
+            <button #checkBtn class="check" type="button" (click)="toggleDone(exIndex, setIndex)"
+              (keydown.enter)="onCheckEnter(exIndex, setIndex, $event)" [class.checked]="s.done">
+              <span class="checkmark" aria-hidden="true"></span>
+            </button>
+          </div>
+
+          <div class="prev-sub" *ngIf="s.prev">
+            Prev: {{ s.prev }}
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Rows -->
-    <div
-      class="grid row"
-      *ngFor="let s of exercise.sets; let i = index"
-      [class.done]="s.done"
-    >
-      <div class="setnum">{{ s.set }}</div>
-      <div class="prev">{{ s.prev || '—' }}</div>
-
-      <input class="cell-input" type="number" inputmode="numeric" [(ngModel)]="s.kg" placeholder="0" />
-      <input class="cell-input" type="number" inputmode="numeric" [(ngModel)]="s.reps" placeholder="0" />
-
-      <button class="check" (click)="toggleDone(i)" [attr.aria-pressed]="s.done">
-        <span *ngIf="s.done">✓</span>
-      </button>
-    </div>
-
-    <button class="add" (click)="addSet()">+ ADD SET</button>
   </div>
 </div>
